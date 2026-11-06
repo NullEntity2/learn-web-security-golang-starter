@@ -237,6 +237,7 @@ func New(database *sql.DB, logger *logging.Logger, options Options) (*Applicatio
 		mainMux,
 		cspNonce,
 		recoverPanics(logger, renderer),
+		setNosniff,
 	)
 	return &Application{Handler: handler, publicRoot: publicRoot}, nil
 }
