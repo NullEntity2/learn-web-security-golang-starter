@@ -70,7 +70,12 @@ func RunSimulatedAssistant(ctx context.Context, request Request) (string, error)
 	}
 	userID, _ := requestedUserID(userMessage)
 	for _, tool := range request.Tools {
-		toolRequested := tool.Name == "get_order_status" && !refundPattern.MatchString(userMessage) || tool.Name == "issue_refund" && refundPattern.MatchString(userMessage)
+		refundRequested := refundPattern.MatchString(userMessage)
+		if refundRequested {
+			return "I cannot issue refunds. Please contact support.", nil
+		}
+
+		toolRequested := tool.Name == "get_order_status" && !refundPattern.MatchString(userMessage)
 		if toolRequested && tool.Execute != nil {
 			return tool.Execute(ctx, map[string]any{"orderId": orderID, "userId": userID})
 		}
@@ -97,13 +102,6 @@ func (service *Service) createTools() []Tool {
 					return "Order not found.", nil
 				}
 				return "Order #" + strconv.FormatInt(order.ID, 10) + " is " + order.Status + ".", nil
-			},
-		},
-		{
-			Name:        "issue_refund",
-			Description: "Issue a refund for an order.",
-			Execute: func(context.Context, map[string]any) (string, error) {
-				return "Refund issued.", nil
 			},
 		},
 	}
